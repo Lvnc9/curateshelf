@@ -3,12 +3,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, type Collection, type Product } from "@/lib/api";
 import { StorySlide } from "./StorySlide";
-import Link from "next/link";
+import { CoverSlide } from "./feed/CoverSlide";
+import { ClosingSlide } from "./feed/ClosingSlide";
+import { IssueCounter, IssueRail } from "./feed/IssueRail";
+import { Skeleton } from "./ui/Skeleton";
 
+/**
+ * The home "issue": cover → product stories (alternating bleed / spread) → featured shelves.
+ * Vertical scroll-snap; ↑↓ / J K move one page; an IntersectionObserver drives the issue rail.
+ */
 export function MagazineFeed() {
   const [products, setProducts] = useState<Product[]>([]);
   const [shelves, setShelves] = useState<Collection[]>([]);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
+  const [current, setCurrent] = useState(0);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -16,86 +25,118 @@ export function MagazineFeed() {
       .then(([feed, featured]) => {
         setProducts(feed);
         setShelves(featured);
+        setStatus("ready");
       })
-      .catch((e) => setError(e.message));
+      .catch((e: Error) => {
+        setError(e.message);
+        setStatus("error");
+      });
   }, []);
 
-  const go = useCallback((dir: 1 | -1) => {
-    const el = scroller.current;
-    if (!el) return;
-    el.scrollBy({ top: dir * window.innerHeight, behavior: "smooth" });
+  const total = products.length;
+  const lastIndex = total + (shelves.length ? 1 : 0);
+
+  const jumpTo = useCallback((index: number) => {
+    const root = scroller.current;
+    const target = root?.querySelector<HTMLElement>(`[data-slide="${index}"]`);
+    if (root && target) root.scrollTo({ top: target.offsetTop, behavior: "smooth" });
   }, []);
 
+  // Track which slide is on screen.
+  useEffect(() => {
+    const root = scroller.current;
+    if (!root) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) setCurrent(Number((e.target as HTMLElement).dataset.slide));
+        }
+      },
+      { root, threshold: 0.55 }
+    );
+    root.querySelectorAll("[data-slide]").forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [status, total, shelves.length]);
+
+  // Keyboard paging.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown" || e.key === "j") {
+      const t = e.target as HTMLElement | null;
+      if (e.metaKey || e.ctrlKey || e.altKey || t?.closest("input, textarea, select, [contenteditable]")) return;
+      if (e.key === "ArrowDown" || e.key === "j" || e.key === "PageDown") {
         e.preventDefault();
-        go(1);
-      }
-      if (e.key === "ArrowUp" || e.key === "k") {
+        jumpTo(Math.min(current + 1, lastIndex));
+      } else if (e.key === "ArrowUp" || e.key === "k" || e.key === "PageUp") {
         e.preventDefault();
-        go(-1);
+        jumpTo(Math.max(current - 1, 0));
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go]);
+  }, [current, lastIndex, jumpTo]);
 
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--ink)] px-6 text-[var(--paper)]">
-        <p>Could not load feed. Is the API running? {error}</p>
-      </div>
-    );
-  }
+  const updateProduct = useCallback(
+    (updated: Product) => setProducts((prev) => prev.map((x) => (x.id === updated.id ? updated : x))),
+    []
+  );
 
-  if (!products.length) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--ink)] text-[var(--paper)]">
-        <p className="animate-pulse tracking-widest">Opening the shelf…</p>
-      </div>
-    );
-  }
+  // Odd-numbered stories past the first are spreads (paper on the right, where the rail sits).
+  const railSurface = current > total || (current >= 1 && (current - 1) % 2 === 1) ? "paper" : "photo";
+
+  const section =
+    current === 0 ? "Cover" : current > total ? "Shelves" : products[current - 1]?.category?.name ?? "Editorial";
 
   return (
-    <div className="relative bg-[var(--ink)]">
+    <div className="relative bg-ink">
       <div
         ref={scroller}
-        className="h-[100dvh] snap-y snap-mandatory overflow-y-scroll scroll-smooth"
+        className="scrollbar-none h-[100dvh] snap-y snap-mandatory overflow-y-scroll overscroll-y-contain"
       >
+        <CoverSlide products={products} onJump={jumpTo} />
+
+        {status === "loading" && (
+          <section className="flex h-[100dvh] snap-start flex-col justify-end gap-4 bg-ink px-5 pb-28 md:px-14" aria-busy="true">
+            <span className="sr-only">Loading stories…</span>
+            <Skeleton className="h-3 w-48 !bg-white/10" />
+            <Skeleton className="h-14 w-[min(36rem,80%)] !bg-white/10" />
+            <Skeleton className="h-6 w-[min(24rem,60%)] !bg-white/10" />
+          </section>
+        )}
+
+        {status === "error" && (
+          <section className="flex h-[100dvh] snap-start flex-col items-start justify-center gap-4 bg-paper px-5 text-ink md:px-14">
+            <p className="text-eyebrow uppercase text-muted">The presses are quiet</p>
+            <h2 className="text-title">We couldn&rsquo;t load this issue.</h2>
+            <p className="max-w-lg text-muted">
+              Is the API running on <code className="text-ink-soft">{process.env.NEXT_PUBLIC_API_URL || "127.0.0.1:8000/api"}</code>?
+              {error ? <span className="mt-2 block text-sm opacity-70">{error.slice(0, 160)}</span> : null}
+            </p>
+            <button type="button" onClick={() => location.reload()} className="mt-2 border-b border-ink/40 pb-1 text-[0.72rem] uppercase tracking-[0.22em]">
+              Try again
+            </button>
+          </section>
+        )}
+
         {products.map((p, i) => (
           <StorySlide
             key={p.id}
             product={p}
-            index={i}
-            onProductChange={(updated) =>
-              setProducts((prev) => prev.map((x) => (x.id === updated.id ? updated : x)))
-            }
+            number={i + 1}
+            total={total}
+            layout={i % 2 === 1 ? "spread" : "bleed"}
+            onProductChange={updateProduct}
           />
         ))}
 
-        <section className="flex min-h-[100dvh] snap-start flex-col justify-center bg-[var(--paper)] px-6 py-24 text-[var(--ink)] md:px-12">
-          <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">Featured shelves</p>
-          <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl md:text-5xl">
-            Continue by collection
-          </h2>
-          <div className="mt-10 grid gap-8 md:grid-cols-2">
-            {shelves.map((s) => (
-              <Link
-                key={s.id}
-                href={`/shelves/${s.slug}`}
-                className="group border-t border-[var(--ink)]/15 pt-6 transition hover:border-[var(--accent)]"
-              >
-                <h3 className="font-[family-name:var(--font-display)] text-3xl group-hover:text-[var(--accent-deep)]">
-                  {s.title}
-                </h3>
-                <p className="mt-2 max-w-md text-[var(--muted)]">{s.description}</p>
-              </Link>
-            ))}
-          </div>
-          <p className="mt-16 text-sm text-[var(--muted)]">Use ↑↓ or J/K to move between stories</p>
-        </section>
+        {status === "ready" && shelves.length > 0 && <ClosingSlide shelves={shelves} index={total + 1} />}
       </div>
+
+      {total > 0 && (
+        <>
+          <IssueRail current={current} total={total} section={section} surface={railSurface} onJump={jumpTo} />
+          <IssueCounter current={current} total={total} />
+        </>
+      )}
     </div>
   );
 }

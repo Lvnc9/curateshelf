@@ -1,88 +1,138 @@
 "use client";
 
-import { coverTone, mediaUrl, type Product } from "@/lib/api";
-import { AttitudeBar } from "./AttitudeBar";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { forwardRef } from "react";
+import { formatPrice, productImages, type Product } from "@/lib/api";
+import { rise, stagger } from "@/lib/motion";
+import { AttitudeBar } from "./AttitudeBar";
+import { EditorialImage } from "./ui/EditorialImage";
+import { ArrowRight } from "./ui/Icons";
 
-export function StorySlide({
-  product,
-  index,
-  onProductChange,
-}: {
-  product: Product;
-  index: number;
-  onProductChange?: (p: Product) => void;
-}) {
-  const tone = coverTone(product.slug);
-  const cover = mediaUrl(product.cover_image);
+export type SlideLayout = "bleed" | "spread";
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * One product story in the magazine feed, a full viewport tall.
+ *
+ * - "bleed": the cover photo fills the screen; copy sits bottom-left on a soft gradient.
+ * - "spread" (md+ only): a two-page spread. Photo on the left 58%, paper page on the
+ *   right with the copy and a small inset of the second gallery photo. On mobile a
+ *   spread falls back to the bleed treatment, using the same markup and breakpoint classes.
+ */
+export const StorySlide = forwardRef<
+  HTMLElement,
+  {
+    product: Product;
+    number: number;
+    total: number;
+    layout: SlideLayout;
+    onProductChange?: (p: Product) => void;
+  }
+>(function StorySlide({ product, number, total, layout, onProductChange }, ref) {
+  const [cover, inset] = productImages(product);
+  const spread = layout === "spread";
+  const byline = [product.maker_name, product.brand].filter(Boolean).join(" · ");
 
   return (
     <section
-      className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden"
-      data-slug={product.slug}
+      ref={ref}
+      data-slide={number}
+      aria-label={`Story ${number} of ${total}: ${product.title}`}
+      className={`relative h-[100dvh] w-full snap-start snap-always overflow-hidden ${
+        spread ? "md:grid md:grid-cols-[58fr_42fr] md:bg-paper" : ""
+      }`}
     >
-      <motion.div
-        className="absolute inset-0"
-        style={{
-          background: cover
-            ? undefined
-            : `radial-gradient(ellipse at 30% 20%, ${tone.accent}33, transparent 50%), linear-gradient(160deg, ${tone.from}, ${tone.to})`,
-          backgroundImage: cover ? `url(${cover})` : undefined,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-        initial={{ scale: 1.08 }}
-        whileInView={{ scale: 1 }}
-        transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-        viewport={{ once: false, amount: 0.6 }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/30" />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.12]"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-        }}
-      />
+      {/* Photograph */}
+      <div className={`grain absolute inset-0 ${spread ? "md:relative md:inset-auto md:h-full" : ""}`}>
+        <EditorialImage
+          src={cover?.src}
+          alt={cover?.alt ?? product.title}
+          tone={product.slug}
+          sizes={spread ? "(min-width: 768px) 58vw, 100vw" : "100vw"}
+          priority={number <= 2}
+          kenBurns
+        />
+        <div
+          className={`absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-black/50 ${
+            spread ? "md:hidden" : ""
+          }`}
+        />
+      </div>
 
-      <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-16 pt-24 md:px-12 md:pb-20">
-        {index === 0 && (
-          <motion.p
-            className="mb-auto font-[family-name:var(--font-display)] text-5xl text-white md:text-7xl"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            CurateShelf
+      {/* Copy */}
+      <motion.div
+        variants={stagger(0.09, 0.15)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ amount: 0.55 }}
+        className={`relative z-10 flex h-full flex-col justify-end px-5 pb-[max(6.5rem,env(safe-area-inset-bottom))] pt-24 text-white md:px-14 md:pb-24 ${
+          spread
+            ? "md:justify-center md:px-[clamp(2.5rem,5vw,6rem)] md:pb-16 md:text-ink"
+            : "max-w-4xl"
+        }`}
+      >
+        <motion.p variants={rise} className="text-eyebrow uppercase opacity-75">
+          <span className="tabular-nums">No. {pad(number)}</span>
+          <span className="mx-2.5 opacity-50">—</span>
+          {product.category?.name ?? "Editorial"}
+          <span className="mx-2.5 opacity-50">·</span>
+          {product.reading_time_estimate} min read
+        </motion.p>
+
+        <motion.h2
+          variants={rise}
+          className={`mt-4 text-display text-balance ${spread ? "md:text-[clamp(2.5rem,1.2rem+3.4vw,4.75rem)]" : ""}`}
+        >
+          <Link href={`/p/${product.slug}`} className="hover:opacity-90">
+            {product.title}
+          </Link>
+        </motion.h2>
+
+        <motion.p
+          variants={rise}
+          className={`mt-5 max-w-xl font-display-italic text-[clamp(1.25rem,1rem+0.9vw,1.75rem)] leading-snug opacity-90 ${
+            spread ? "md:text-ink-soft" : ""
+          }`}
+        >
+          {product.subtitle}
+        </motion.p>
+
+        {byline && (
+          <motion.p variants={rise} className={`mt-4 text-sm opacity-70 ${spread ? "md:text-muted md:opacity-100" : ""}`}>
+            {byline}
           </motion.p>
         )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          viewport={{ once: false, amount: 0.5 }}
-          className="max-w-2xl"
-        >
-          <p className="mb-3 text-xs uppercase tracking-[0.28em] text-white/60">
-            {product.category?.name || "Editorial"} · {product.reading_time_estimate} min
-          </p>
-          <h2 className="font-[family-name:var(--font-display)] text-4xl leading-[1.05] text-white md:text-6xl">
-            {product.title}
-          </h2>
-          <p className="mt-4 max-w-lg text-base text-white/80 md:text-lg">{product.subtitle}</p>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            <AttitudeBar product={product} onChange={onProductChange} />
-            <Link
-              href={`/p/${product.slug}`}
-              className="text-sm uppercase tracking-[0.18em] text-white underline decoration-white/40 underline-offset-4 hover:decoration-white"
-            >
-              See details
-            </Link>
+        {spread && inset && (
+          <motion.figure variants={rise} className="relative mt-10 hidden aspect-[4/3] w-[min(62%,22rem)] md:block">
+            <EditorialImage src={inset.src} alt={inset.alt} tone={product.slug} sizes="22rem" />
+            <figcaption className="sr-only">{inset.alt}</figcaption>
+          </motion.figure>
+        )}
+
+        <motion.div variants={rise} className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-5">
+          {/* Over a photo on mobile; on paper for desktop spreads */}
+          <div className={spread ? "md:hidden" : ""}>
+            <AttitudeBar product={product} onChange={onProductChange} surface="photo" />
           </div>
+          {spread && (
+            <div className="hidden md:block">
+              <AttitudeBar product={product} onChange={onProductChange} surface="paper" />
+            </div>
+          )}
+          <Link
+            href={`/p/${product.slug}`}
+            className="group inline-flex items-center gap-3 text-[0.72rem] uppercase tracking-[0.22em]"
+          >
+            <span className="border-b border-current/40 pb-1 transition-colors group-hover:border-current">
+              Read the story · {formatPrice(product)}
+            </span>
+            <ArrowRight className="size-4 transition-transform duration-500 ease-editorial group-hover:translate-x-1" />
+          </Link>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
-}
+});
