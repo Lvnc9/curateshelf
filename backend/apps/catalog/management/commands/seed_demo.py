@@ -1,19 +1,43 @@
 from decimal import Decimal
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
+from django.core.files import File
+from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.utils.text import slugify
 
-from apps.catalog.models import Category, Product, ProductAttribute, Tag
+from apps.catalog.models import Category, Product, ProductAttribute, ProductMedia, Tag
 from apps.editorial.models import Collection, CollectionItem
 from apps.engagement.models import Attitude, Comment
 
 User = get_user_model()
 
+# Curated photos committed to the repo (see seed_media/CREDITS.md and docs/adr/0001).
+SEED_MEDIA = Path(__file__).resolve().parents[4] / "seed_media"
+
+
+def attach_file(field_file, target_name: str, source: Path) -> bool:
+    """Copy `source` into storage at exactly `target_name` and point `field_file` at it.
+
+    Idempotent: skips when the field already references `target_name` and the file exists.
+    Returns True when a file was written (which triggers the image-processing signals).
+    """
+    if not source.exists():
+        return False
+    if field_file.name == target_name and default_storage.exists(target_name):
+        return False
+    if default_storage.exists(target_name):
+        default_storage.delete(target_name)  # avoid Django's random-suffix renaming
+    with source.open("rb") as fh:
+        field_file.save(target_name.rsplit("/", 1)[-1], File(fh), save=True)
+    return True
+
 PRODUCTS = [
     {
         "title": "Hand-Thrown Stoneware Carafe",
+        "image_alts": ["Grey stoneware jug on a turntable against a pale backdrop", "Cream pitcher with a relief snowdrop pattern", "Celadon-glazed vessel with a pale floral relief"],
         "subtitle": "A quiet pour for slow mornings",
         "description": (
             "Thrown on the wheel in a coastal studio, this carafe holds just enough water "
@@ -31,6 +55,7 @@ PRODUCTS = [
     },
     {
         "title": "Linen Daybed Throw",
+        "image_alts": ["Patterned throw draped over a low upholstered stool", "Soft printed fabric draped over a sofa beside a window", "Close detail of an undyed linen weave"],
         "subtitle": "Washed soft, weighted just right",
         "description": (
             "European flax linen, garment-washed until it drapes like a memory. "
@@ -48,6 +73,7 @@ PRODUCTS = [
     },
     {
         "title": "Brass Desk Lamp No. 4",
+        "image_alts": ["Brass banker’s lamp on a walnut base", "Brass desk lamp shade and hinge in profile", "Table lamp with a pleated shade glowing in a dim room"],
         "subtitle": "Warm pool light, hinged precision",
         "description": (
             "A counterweighted arm that stays where you leave it. Solid brass aged to a "
@@ -66,6 +92,7 @@ PRODUCTS = [
     },
     {
         "title": "Cedar Incense Blocks",
+        "image_alts": ["A curl of incense smoke rising against black", "A lit incense stick resting on a wooden board", "Bundles of incense smoking in a temple burner"],
         "subtitle": "Forest floor, distilled",
         "description": (
             "Pressed cedar and frankincense in small architectural blocks. "
@@ -83,6 +110,7 @@ PRODUCTS = [
     },
     {
         "title": "Oak Cutting Board — Long Form",
+        "image_alts": ["Wooden board with a juice groove on a workbench", "End-grain chopping block with a lemon", "Plain oak board with a turned handle"],
         "subtitle": "One plank, lifetime grain",
         "description": (
             "Quarter-sawn white oak with a juice groove that respects the edge. "
@@ -99,6 +127,7 @@ PRODUCTS = [
     },
     {
         "title": "Wool Travel Blanket",
+        "image_alts": ["Folded red and cream striped wool blanket", "Folded patterned wool travel rug with fringe", "A cat asleep on a grey knitted wool blanket"],
         "subtitle": "Cabin quiet for the commute",
         "description": (
             "Merino-blend twill that folds into its own leather strap. "
@@ -115,6 +144,7 @@ PRODUCTS = [
     },
     {
         "title": "Porcelain Pour-Over Set",
+        "image_alts": ["Pour-over dripper and kettles on a dark counter", "Porcelain coffee dripper set on a white cup", "Overhead view of coffee being poured by hand"],
         "subtitle": "Clarity in three pieces",
         "description": (
             "Dripper, server, and cup in bone-white porcelain with a single indigo line. "
@@ -132,6 +162,7 @@ PRODUCTS = [
     },
     {
         "title": "Wall Shelf — Floating Ash",
+        "image_alts": ["White floating shelf with trailing plants and books", "Long low shelf filled with books", "Row of cloth-bound books on a wooden shelf"],
         "subtitle": "A ledge for the things you keep",
         "description": (
             "Solid ash with hidden brackets rated for real books, not just decor. "
@@ -219,6 +250,7 @@ class Command(BaseCommand):
                 ProductAttribute.objects.create(
                     product=product, key=key, value=value, sort_order=order
                 )
+            self.attach_product_images(product, data.get("image_alts", []))
             products.append(product)
             self.stdout.write(f"{'Created' if created else 'Updated'} {product.title}")
 
@@ -231,6 +263,7 @@ class Command(BaseCommand):
                 "sort_order": 0,
             },
         )
+        attach_file(shelf.cover, "shelves/quiet-mornings.jpg", SEED_MEDIA / "shelves" / "quiet-mornings.jpg")
         shelf.items.all().delete()
         for pos, product in enumerate(products[:4]):
             CollectionItem.objects.create(
@@ -249,6 +282,7 @@ class Command(BaseCommand):
                 "sort_order": 1,
             },
         )
+        attach_file(shelf2.cover, "shelves/material-stories.jpg", SEED_MEDIA / "shelves" / "material-stories.jpg")
         shelf2.items.all().delete()
         for pos, product in enumerate(products[3:7]):
             CollectionItem.objects.create(collection=shelf2, product=product, position=pos)
@@ -284,3 +318,23 @@ class Command(BaseCommand):
         self.stdout.write("Admin: admin@curateshelf.local / admin12345")
         self.stdout.write("Editor: editor@curateshelf.local / editor12345")
         self.stdout.write("Reader: reader@curateshelf.local / reader12345")
+    def attach_product_images(self, product, alts):
+        """Attach seed_media/products/<slug>/{cover,1,2}.jpg as cover + gallery media."""
+        folder = SEED_MEDIA / "products" / product.slug
+        if not folder.is_dir():
+            self.stdout.write(self.style.WARNING(f"  no seed photos for {product.slug}"))
+            return
+        attach_file(product.cover_image, f"products/covers/{product.slug}.jpg", folder / "cover.jpg")
+
+        # Gallery: the cover first, then the detail shots, so the product page carousel is complete.
+        sources = [folder / "cover.jpg"] + sorted(p for p in folder.glob("*.jpg") if p.stem != "cover")
+        for order, source in enumerate(sources):
+            alt = alts[order] if order < len(alts) else product.title
+            media = ProductMedia.objects.filter(product=product, sort_order=order).first()
+            if media is None:
+                media = ProductMedia(product=product, sort_order=order)
+            media.alt_text = alt
+            media.media_type = ProductMedia.MediaType.IMAGE
+            if not attach_file(media.file, f"products/gallery/{product.slug}-{order}.jpg", source):
+                media.save()
+        product.media.filter(sort_order__gte=len(sources)).delete()
