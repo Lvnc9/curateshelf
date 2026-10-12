@@ -14,8 +14,11 @@ empty, so every slide, card and hero fell back to `coverTone()` gradients in
 without photos.
 
 Figma was not reachable from the developer's region (HTTP 451), so imagery
-comes from real photography under the Unsplash License, which allows free
-commercial use and does not require attribution (we credit anyway).
+comes from real photography. Unsplash, Pexels, Pixabay and Flickr all timed
+out from the same network. **Wikimedia Commons** was reachable, so the set is
+drawn from Commons, limited to CC0, public domain, CC BY and CC BY-SA. If
+you replace a photo later, any source with a compatible license is fine.
+Record it in `CREDITS.md`.
 
 ## Decision
 
@@ -25,7 +28,7 @@ through the normal `ImageField`/`FileField` APIs. That path triggers the
 existing signals and Celery tasks (`process_cover_image`,
 `process_product_media`), which generate the `thumb`/`card`/`hero` variants.
 
-Each image is at most 2000px on the long edge, JPEG quality ~80, roughly 150–350 KB.
+Each image is at most 1800px on the long edge, progressive JPEG quality ~78, typically 100–500 KB.
 Attribution lives in `backend/seed_media/CREDITS.md`.
 
 ## Options considered
