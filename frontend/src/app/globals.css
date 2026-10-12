@@ -64,15 +64,6 @@
   }
 }
 
-/* Legacy aliases. Older components still read these; remove once nothing references them. */
-:root {
-  --ink: var(--color-ink);
-  --paper: var(--color-paper);
-  --muted: var(--color-muted);
-  --accent: var(--color-clay);
-  --accent-deep: var(--color-clay-deep);
-}
-
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
