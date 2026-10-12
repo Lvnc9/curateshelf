@@ -27,7 +27,8 @@ export const CuriousIcon = ({ filled, ...p }: SVGProps<SVGSVGElement> & { filled
   </svg>
 );
 
-export const SkipIcon = (p: SVGProps<SVGSVGElement>) => (
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const SkipIcon = ({ filled, ...p }: SVGProps<SVGSVGElement> & { filled?: boolean }) => (
   <svg {...base} {...p}>
     <path d="M5 12h12M13 7l5 5-5 5" />
   </svg>
