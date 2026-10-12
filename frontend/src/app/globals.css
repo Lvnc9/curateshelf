@@ -49,6 +49,12 @@
   }
 }
 
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
