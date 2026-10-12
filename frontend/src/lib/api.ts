@@ -197,6 +197,15 @@ export function productImages(p: Product): ImageRef[] {
   return out;
 }
 
+/** "Maker · Brand", collapsing the brand when the maker name already contains it. */
+export function byline(p: Pick<Product, "maker_name" | "brand">, joiner = " · "): string {
+  const maker = p.maker_name?.trim() ?? "";
+  const brand = p.brand?.trim() ?? "";
+  if (!maker) return brand;
+  if (!brand || maker.toLowerCase().includes(brand.toLowerCase())) return maker;
+  return `${maker}${joiner}${brand}`;
+}
+
 export function formatPrice(p: Pick<Product, "price" | "currency">): string {
   const n = Number(p.price);
   try {

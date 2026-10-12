@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { api, formatPrice, productImages, type Product } from "@/lib/api";
+import { api, byline as bylineOf, formatPrice, productImages, type Product } from "@/lib/api";
 import { rise, stagger } from "@/lib/motion";
 import { AttitudeBar } from "@/components/AttitudeBar";
 import { CommentThread } from "@/components/CommentThread";
@@ -66,7 +66,7 @@ export default function ProductPage() {
   if (!product) return <ProductSkeleton />;
 
   const images = productImages(product);
-  const byline = [product.maker_name, product.brand].filter(Boolean);
+  const byline = bylineOf(product, " for ");
   const lowStock = product.inventory_count > 0 && product.inventory_count <= 10;
 
   return (
@@ -102,9 +102,9 @@ export default function ProductPage() {
           <motion.p variants={rise} className="mt-5 font-display-italic text-[clamp(1.35rem,1.1rem+0.8vw,1.85rem)] leading-snug text-ink-soft">
             {product.subtitle}
           </motion.p>
-          {byline.length > 0 && (
+          {byline && (
             <motion.p variants={rise} className="mt-4 text-sm text-muted">
-              Made by {byline.join(" for ")}
+              Made by {byline}
             </motion.p>
           )}
 

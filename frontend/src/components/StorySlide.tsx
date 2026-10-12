@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { forwardRef } from "react";
-import { formatPrice, productImages, type Product } from "@/lib/api";
+import { byline as bylineOf, formatPrice, productImages, type Product } from "@/lib/api";
 import { rise, stagger } from "@/lib/motion";
 import { AttitudeBar } from "./AttitudeBar";
 import { EditorialImage } from "./ui/EditorialImage";
@@ -33,7 +33,7 @@ export const StorySlide = forwardRef<
 >(function StorySlide({ product, number, total, layout, onProductChange }, ref) {
   const [cover, inset] = productImages(product);
   const spread = layout === "spread";
-  const byline = [product.maker_name, product.brand].filter(Boolean).join(" · ");
+  const byline = bylineOf(product);
 
   return (
     <section

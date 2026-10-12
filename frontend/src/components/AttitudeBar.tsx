@@ -91,6 +91,7 @@ export function AttitudeBar({
             key={kind}
             type="button"
             aria-pressed={active}
+            aria-label={`${label}, ${count} ${count === 1 ? "reader" : "readers"}`}
             whileTap={{ scale: 0.94 }}
             onClick={() => choose(kind)}
             className={`group inline-flex h-10 items-center gap-2 rounded-full border pl-3.5 pr-4 text-[0.72rem] uppercase tracking-[0.18em] transition-colors duration-300 ${
