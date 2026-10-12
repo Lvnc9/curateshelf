@@ -26,7 +26,9 @@ export type Product = {
   skip_count: number;
   my_attitude: AttitudeKind | null;
   inventory_count: number;
-  media?: { id: number; file: string; alt_text: string; variants: Record<string, string> }[];
+  /** Up to two card-sized gallery shots (excludes the cover). Present on list/feed payloads. */
+  gallery_preview?: { url: string; alt: string }[];
+  media?: { id: number; file: string; alt_text: string; sort_order?: number; variants: Record<string, string> }[];
   attributes?: { id: number; key: string; value: string }[];
   sku?: string;
 };
@@ -163,14 +165,56 @@ export const api = {
     request<{ likes_count: number; liked: boolean }>(`/comments/${id}/like/`, { method: "DELETE" }),
 };
 
+export type ImageRef = { src: string; alt: string };
+
+/**
+ * Every photo we know for a product, cover first, deduplicated.
+ * Detail payloads carry `media` (hero variants); list payloads carry `gallery_preview`.
+ */
+export function productImages(p: Product): ImageRef[] {
+  const out: ImageRef[] = [];
+  const seen = new Set<string>();
+  const push = (src: string | null | undefined, alt: string) => {
+    const url = mediaUrl(src);
+    if (url && !seen.has(url)) {
+      seen.add(url);
+      out.push({ src: url, alt });
+    }
+  };
+  if (p.media?.length) {
+    for (const m of p.media) push(m.variants?.hero || m.file, m.alt_text || p.title);
+  } else {
+    push(p.cover_image, p.title);
+    for (const g of p.gallery_preview ?? []) push(g.url, g.alt || p.title);
+  }
+  if (!out.length) push(p.cover_image, p.title);
+  return out;
+}
+
+export function formatPrice(p: Pick<Product, "price" | "currency">): string {
+  const n = Number(p.price);
+  try {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: p.currency || "USD",
+      maximumFractionDigits: n % 1 === 0 ? 0 : 2,
+    }).format(n);
+  } catch {
+    return `${p.currency} ${p.price}`;
+  }
+}
+
+/** Placeholder tone shown behind a photo while it loads (and if it is missing). */
 export function coverTone(slug: string): { from: string; to: string; accent: string } {
+  // Muted, warm mid-tones drawn from the paper/clay/sage palette, so the placeholder
+  // reads as "photo loading" on paper pages rather than a dark block.
   const tones = [
-    { from: "#1c2b28", to: "#0e1614", accent: "#7eb8a8" },
-    { from: "#2a241c", to: "#12100c", accent: "#d4a574" },
-    { from: "#1a2433", to: "#0c121a", accent: "#8aafd4" },
-    { from: "#2b1e24", to: "#140e11", accent: "#c98b9a" },
-    { from: "#1e2a1a", to: "#0f150c", accent: "#a8c07a" },
-    { from: "#241f2e", to: "#110e16", accent: "#9b8ec4" },
+    { from: "#ddd5c8", to: "#cfc5b5", accent: "#8fa89a" },
+    { from: "#e2d6c6", to: "#d0bfa9", accent: "#b4846c" },
+    { from: "#d6d8cf", to: "#c3c8bb", accent: "#8fa89a" },
+    { from: "#e0d3cc", to: "#cdbab0", accent: "#b4846c" },
+    { from: "#d9d3c4", to: "#c7bfac", accent: "#a39a7e" },
+    { from: "#d7d2cc", to: "#c4bdb5", accent: "#8e8579" },
   ];
   let hash = 0;
   for (let i = 0; i < slug.length; i++) hash = (hash + slug.charCodeAt(i) * (i + 1)) % tones.length;
