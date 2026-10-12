@@ -4,7 +4,8 @@
 
 Scroll full-bleed product stories like a digital magazine. React with **Love / Curious / Skip**, open details and comments, and manage inventory from a polished Django admin. Built as a portfolio-ready full-stack app with real backend jobs (Celery), PostgreSQL search, and a photo-led Next.js frontend in a quiet editorial style.
 
-> New here? Start with the friendly walkthrough: **[docs/USAGE.md](docs/USAGE.md)**
+> New here? Start with the friendly walkthrough: **[docs/USAGE.md](docs/USAGE.md)**  
+> Technical docs for every service and screen: **[docs/README.md](docs/README.md)**
 
 ---
 
@@ -300,7 +301,7 @@ curateshelf/
 │   ├── Dockerfile
 │   └── .env.example
 ├── frontend/                # Next.js App Router + Framer Motion (see ## Design)
-├── docs/                    # USAGE.md, ADRs
+├── docs/                    # USAGE.md, architecture, backend/, frontend/, operations/, adr/
 ├── docker-compose.yml
 ├── README.md                # ← you are here
 └── LICENSE
