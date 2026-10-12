@@ -1,6 +1,6 @@
 # Seed media credits
 
-Photos used by `python manage.py seed_demo`. All come from
+Photos used by `python manage.py seed_demo`, plus the frontend masthead. All come from
 [Wikimedia Commons](https://commons.wikimedia.org/) under free licenses
 (CC0, public domain, CC BY, or CC BY-SA). See
 [ADR-0001](../../docs/adr/0001-editorial-imagery.md) for why they're committed here.
@@ -13,7 +13,7 @@ When you swap a photo, update its row here.
 
 | File | Work | Author | License |
 |---|---|---|---|
-| `masthead.jpg` | [Incense in India.jpg](https://commons.wikimedia.org/wiki/File:Incense_in_India.jpg) | 4174332 | CC0 |
+| `../../frontend/public/editorial/masthead.jpg` (feed cover and auth pages) | [Incense in India.jpg](https://commons.wikimedia.org/wiki/File:Incense_in_India.jpg) | 4174332 | CC0 |
 | `shelves/material-stories.jpg` | [Detail of end grain cutting board.jpg](https://commons.wikimedia.org/wiki/File:Detail_of_end_grain_cutting_board.jpg) | Hu Nhu | CC BY-SA 4.0 |
 | `shelves/quiet-mornings.jpg` | [Bright turquoise mug sits on a wooden table by the window, reflecting morning light, inviting a quiet moment of reflection.jpg](https://commons.wikimedia.org/wiki/File:Bright_turquoise_mug_sits_on_a_wooden_table_by_the_window,_reflecting_morning_light,_inviting_a_quiet_moment_of_reflection.jpg) | Shixart1985 | CC BY 2.0 |
 | `products/brass-desk-lamp-no-4/1.jpg` | [Desktop-lamp-3 hg.jpg](https://commons.wikimedia.org/wiki/File:Desktop-lamp-3_hg.jpg) | Hannes Grobe | CC BY-SA 4.0 |
