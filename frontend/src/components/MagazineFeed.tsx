@@ -42,6 +42,24 @@ export function MagazineFeed() {
     if (root && target) root.scrollTo({ top: target.offsetTop, behavior: "smooth" });
   }, []);
 
+  // Deep links: /#no-3 opens the issue at story 3 (stories load async, so jump once they exist).
+  useEffect(() => {
+    if (status !== "ready") return;
+    const match = /^#no-(\d+)$/.exec(window.location.hash);
+    const root = scroller.current;
+    const target = match && root?.querySelector<HTMLElement>(`[data-slide="${Number(match[1])}"]`);
+    if (root && target) root.scrollTo({ top: target.offsetTop, behavior: "instant" });
+  }, [status]);
+
+  // Keep the address bar shareable as the reader moves (replaceState: no history spam, no jump).
+  useEffect(() => {
+    if (status !== "ready") return;
+    const hash = current >= 1 && current <= total ? `#no-${current}` : "";
+    if (window.location.hash !== hash) {
+      history.replaceState(history.state, "", `${window.location.pathname}${window.location.search}${hash}`);
+    }
+  }, [current, status, total]);
+
   // Track which slide is on screen.
   useEffect(() => {
     const root = scroller.current;

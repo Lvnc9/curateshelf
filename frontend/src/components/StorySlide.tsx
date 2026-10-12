@@ -38,6 +38,7 @@ export const StorySlide = forwardRef<
   return (
     <section
       ref={ref}
+      id={`no-${number}`}
       data-slide={number}
       aria-label={`Story ${number} of ${total}: ${product.title}`}
       className={`relative h-[100dvh] w-full snap-start snap-always overflow-hidden ${
