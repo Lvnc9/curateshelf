@@ -2,7 +2,7 @@
 
 **An editorial product magazine** — not a typical grid shop.
 
-Scroll full-bleed product stories like a digital magazine. React with **Love / Curious / Skip**, open details and comments, and manage inventory from a polished Django admin. Built as a portfolio-ready full-stack app with real backend jobs (Celery), PostgreSQL search, and a cinematic Next.js frontend.
+Scroll full-bleed product stories like a digital magazine. React with **Love / Curious / Skip**, open details and comments, and manage inventory from a polished Django admin. Built as a portfolio-ready full-stack app with real backend jobs (Celery), PostgreSQL search, and a photo-led Next.js frontend in a quiet editorial style.
 
 > New here? Start with the friendly walkthrough: **[docs/USAGE.md](docs/USAGE.md)**
 
@@ -12,18 +12,19 @@ Scroll full-bleed product stories like a digital magazine. React with **Love / C
 
 1. [What you get](#what-you-get)
 2. [Demo tour (2 minutes)](#demo-tour-2-minutes)
-3. [Requirements](#requirements)
-4. [Setup — local (recommended)](#setup--local-recommended)
-5. [Setup — Docker](#setup--docker)
-6. [Useful URLs](#useful-urls)
-7. [Demo accounts](#demo-accounts)
-8. [How to use the product](#how-to-use-the-product)
-9. [API overview](#api-overview)
-10. [Project structure](#project-structure)
-11. [Celery tasks](#celery-tasks)
-12. [Common problems](#common-problems)
-13. [Tech stack](#tech-stack)
-14. [License](#license)
+3. [Design](#design)
+4. [Requirements](#requirements)
+5. [Setup — local (recommended)](#setup--local-recommended)
+6. [Setup — Docker](#setup--docker)
+7. [Useful URLs](#useful-urls)
+8. [Demo accounts](#demo-accounts)
+9. [How to use the product](#how-to-use-the-product)
+10. [API overview](#api-overview)
+11. [Project structure](#project-structure)
+12. [Celery tasks](#celery-tasks)
+13. [Common problems](#common-problems)
+14. [Tech stack](#tech-stack)
+15. [License](#license)
 
 ---
 
@@ -31,9 +32,10 @@ Scroll full-bleed product stories like a digital magazine. React with **Love / C
 
 | Area | Highlights |
 |------|------------|
-| **Magazine feed** | Vertical snap-scroll stories, keyboard `J` / `K`, motion transitions |
+| **Magazine feed** | A cover, then photographed stories alternating full-bleed / two-page spreads, an issue rail, keyboard `J` / `K`, deep links (`/#no-3`) |
 | **Attitudes** | Love · Curious · Skip (one per product), optimistic UI, live counts |
-| **Catalog** | Products, categories, tags, attributes, inventory, cover/media |
+| **Catalog** | Products, categories, tags, attributes, inventory, cover + photo gallery |
+| **Imagery** | 26 curated, freely licensed product and shelf photos loaded by `seed_demo`, plus a masthead ([credits](backend/seed_media/CREDITS.md)) |
 | **Comments** | Threaded replies, likes, spam flagging, admin moderation |
 | **Shelves** | Editorial collections (featured on the home feed) |
 | **Profiles** | Public profiles + Loved / Curious shelves |
@@ -48,10 +50,27 @@ Payments are **out of scope** for v1 — product pages show an **Inquire / Reser
 
 1. Start backend + frontend (see [Setup](#setup--local-recommended)).
 2. Open **http://localhost:3000** — scroll the magazine feed.
-3. Click **See details** on a product → read attributes, leave a comment (after login).
-4. Sign in as `reader@curateshelf.local` / `reader12345`.
+3. Click **Read the story** on a product → swipe the photo gallery, read the details, leave a note (after login).
+4. Sign in as `reader@curateshelf.local` / `reader12345` (or press **Use demo reader** on the sign-in page).
 5. Tap **Love** or **Curious** on a story → check your profile under **Loved / Curious**.
 6. Open **http://127.0.0.1:8000/admin/** with the admin account → edit a product or shelf.
+
+---
+
+## Design
+
+The frontend follows a **"Quiet Editorial"** direction, in the spirit of independent print magazines: warm paper,
+hairline rules, a light Fraunces serif for display type, Outfit for UI text, and generous whitespace.
+
+| Piece | Where |
+|-------|-------|
+| Design tokens (palette, fluid type scale, easing) | `frontend/src/app/globals.css` (`@theme`) |
+| Shared motion language | `frontend/src/lib/motion.ts` |
+| Primitives: `EditorialImage`, `ProductCard`, `Gallery`, `Button`, `Field`, `Skeleton`, icons | `frontend/src/components/ui/` |
+| Feed pieces: cover, issue rail, closing shelves | `frontend/src/components/feed/` |
+| Why the photos are committed (and where they come from) | [ADR-0001](docs/adr/0001-editorial-imagery.md) |
+
+Muted text and accent colours pass WCAG AA on paper. Every animation respects `prefers-reduced-motion`.
 
 ---
 
@@ -200,14 +219,18 @@ Login page: http://localhost:3000/login (pre-filled with the reader account for 
 
 ### Magazine feed (home)
 
-- Scroll vertically — each viewport is one product story.
-- **`J` / `↓`** next story · **`K` / `↑`** previous.
-- **Love / Curious / Skip** — sign in first; tap again to clear.
-- **See details** opens the product page.
+- Opens on a **magazine cover**. "In this issue" jumps straight to a story.
+- Scroll vertically: each viewport is one story. Stories alternate between a **full-bleed photo** and a
+  **two-page spread** (photo left, paper page right) on desktop.
+- **`J` / `↓`** next story · **`K` / `↑`** previous. The rail on the right shows `No. 03 / 08`.
+- The URL follows you (`/#no-3`), so you can share a link to a specific story.
+- **Love / Curious / Skip**: sign in first; tap again to clear. Counts update instantly.
+- **Read the story** opens the product page.
 
 ### Product page (`/p/[slug]`)
 
-- Editorial description, specs (attributes), price, stock.
+- A sticky **photo gallery** (swipe, arrow keys, thumbnails) beside the story, specs, price and stock.
+- "More from <category>" at the bottom.
 - **Inquire / Reserve** is a demo CTA (no Stripe in v1).
 - Threaded **comments** with replies and likes.
 
@@ -218,7 +241,7 @@ Login page: http://localhost:3000/login (pre-filled with the reader account for 
 
 ### Explore
 
-- Full-text search over published products (`/explore`).
+- Full-text search plus category filters over published products (`/explore`). Filters live in the URL.
 
 ### Your profile
 
@@ -271,11 +294,13 @@ curateshelf/
 │   │   ├── notifications/   # In-app + email digests
 │   │   └── core/            # Health check
 │   ├── config/              # Settings, Celery, URLs
+│   ├── seed_media/          # Curated demo photos + CREDITS.md (loaded by seed_demo)
 │   ├── manage.py
 │   ├── requirements.txt
 │   ├── Dockerfile
 │   └── .env.example
-├── frontend/                # Next.js App Router + Framer Motion
+├── frontend/                # Next.js App Router + Framer Motion (see ## Design)
+├── docs/                    # USAGE.md, ADRs
 ├── docker-compose.yml
 ├── README.md                # ← you are here
 └── LICENSE
