@@ -1,34 +1,156 @@
 @import "tailwindcss";
 
+/*
+ * CurateShelf, "Quiet Editorial" design tokens.
+ * Warm paper, hairline rules, light serif display type, generous whitespace.
+ * Tailwind v4 turns every --color-* / --font-* / --text-* / --ease-* below into
+ * utilities (bg-paper, text-ink, border-hairline, font-display, text-hero, ease-editorial…).
+ * Contrast (WCAG AA): muted and clay-deep pass 4.5:1 on paper; clay is a fill only.
+ */
+@theme inline {
+  --color-paper: #f5f1ea;
+  --color-paper-deep: #ece6db;
+  --color-ink: #1b1a17;
+  --color-ink-soft: #4a463f;
+  --color-muted: #6b655b;
+  --color-hairline: rgb(27 26 23 / 0.12);
+  --color-clay: #b4846c;
+  --color-clay-deep: #8e6450;
+  --color-sage: #8fa89a;
+
+  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+
+  /* Fluid editorial type scale */
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--letter-spacing: 0.26em;
+  --text-eyebrow--line-height: 1.4;
+  --text-lede: clamp(1.0625rem, 0.95rem + 0.45vw, 1.3125rem);
+  --text-lede--line-height: 1.55;
+  --text-title: clamp(2rem, 1.4rem + 2.4vw, 3.5rem);
+  --text-title--line-height: 1.04;
+  --text-display: clamp(2.75rem, 1.6rem + 4.6vw, 5.75rem);
+  --text-display--line-height: 0.98;
+  --text-hero: clamp(3.5rem, 1.5rem + 9vw, 10rem);
+  --text-hero--line-height: 0.9;
+
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-kenburns: kenburns 18s var(--ease-editorial) both;
+  --animate-fade-in: fade-in 0.9s var(--ease-editorial) both;
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Legacy aliases. Older components still read these; remove once nothing references them. */
 :root {
-  --ink: #121411;
-  --paper: #f3efe6;
-  --muted: #6d6a62;
-  --accent: #7eb8a8;
-  --accent-deep: #2f5f55;
-  --font-display: "Fraunces", Georgia, serif;
-  --font-sans: "Outfit", system-ui, sans-serif;
+  --ink: var(--color-ink);
+  --paper: var(--color-paper);
+  --muted: var(--color-muted);
+  --accent: var(--color-clay);
+  --accent-deep: var(--color-clay-deep);
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-sans);
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-weight: 300;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    background: var(--color-clay);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 1.5px solid var(--color-clay-deep);
+    outline-offset: 3px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 300;
+    /* Fraunces: soft, slightly optical-sized for display */
+    font-variation-settings: "SOFT" 60, "opsz" 96;
+    letter-spacing: -0.015em;
+  }
 }
 
-* {
-  box-sizing: border-box;
+@layer utilities {
+  .font-display-italic {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-variation-settings: "SOFT" 100, "opsz" 72;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Subtle film grain for photographic surfaces */
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Drop cap for long-form product copy */
+  .drop-cap::first-letter {
+    float: left;
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 4.25em;
+    line-height: 0.82;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--color-clay-deep);
+  }
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-::selection {
-  background: var(--accent);
-  color: var(--ink);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
