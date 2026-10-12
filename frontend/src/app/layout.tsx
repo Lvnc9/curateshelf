@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/lib/auth";
+import { Providers } from "@/components/Providers";
 import { SiteNav } from "@/components/SiteNav";
 
 // Variable Fraunces: the SOFT and opsz axes give the light, rounded display voice.
@@ -42,10 +42,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Skip to content
         </a>
-        <AuthProvider>
+        <Providers>
           <SiteNav />
           <main id="main">{children}</main>
-        </AuthProvider>
+        </Providers>
       </body>
     </html>
   );
