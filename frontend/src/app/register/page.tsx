@@ -1,9 +1,11 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth";
+import { AuthShell, FormError } from "@/components/AuthShell";
+import { Button, Field } from "@/components/ui/primitives";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -12,56 +14,64 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setBusy(true);
     try {
       await register(email, password, username || undefined);
       router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 pt-16">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl">Join CurateShelf</h1>
-      <form onSubmit={onSubmit} className="mt-8 space-y-4">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-[var(--ink)]/20 bg-transparent px-4 py-3 outline-none focus:border-[var(--accent)]"
-          placeholder="Email"
-          required
-        />
-        <input
+    <AuthShell
+      eyebrow="Join the readership"
+      title={
+        <>
+          Start your <span className="font-display-italic">shelf</span>
+        </>
+      }
+      lede="Keep the pieces you love, and the ones you're curious about, in one quiet place."
+      footer={
+        <>
+          Already reading?{" "}
+          <Link href="/login" className="border-b border-ink/40 text-ink hover:border-ink">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={onSubmit} className="space-y-8">
+        <Field label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <Field
+          label="Username (optional)"
+          autoComplete="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="w-full border border-[var(--ink)]/20 bg-transparent px-4 py-3 outline-none focus:border-[var(--accent)]"
-          placeholder="Username (optional)"
+          pattern="[a-zA-Z0-9_.\-]+"
+          title="Letters, numbers, dots, dashes and underscores"
         />
-        <input
+        <Field
+          label="Password"
           type="password"
+          autoComplete="new-password"
+          minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-[var(--ink)]/20 bg-transparent px-4 py-3 outline-none focus:border-[var(--accent)]"
-          placeholder="Password (min 8)"
-          minLength={8}
           required
         />
-        {error && <p className="text-sm text-red-700">{error}</p>}
-        <button type="submit" className="w-full bg-[var(--ink)] py-3 text-[var(--paper)]">
-          Create account
-        </button>
+        <FormError message={error} />
+        <Button type="submit" disabled={busy}>
+          {busy ? "Creating…" : "Create account"}
+        </Button>
       </form>
-      <p className="mt-6 text-sm text-[var(--muted)]">
-        Already have an account?{" "}
-        <Link href="/login" className="underline">
-          Sign in
-        </Link>
-      </p>
-    </div>
+    </AuthShell>
   );
 }
