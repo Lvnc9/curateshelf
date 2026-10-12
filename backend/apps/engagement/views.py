@@ -54,7 +54,7 @@ class MyAttitudesView(generics.ListAPIView):
         qs = (
             Attitude.objects.filter(user=self.request.user)
             .select_related("product", "product__category")
-            .prefetch_related("product__tags")
+            .prefetch_related("product__tags", "product__media")
             .order_by("-updated_at")
         )
         kind = self.request.query_params.get("kind")

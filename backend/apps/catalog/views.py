@@ -48,7 +48,7 @@ class ProductFeedView(generics.ListAPIView):
         qs = (
             Product.objects.filter(status=Product.Status.PUBLISHED)
             .select_related("category")
-            .prefetch_related("tags")
+            .prefetch_related("tags", "media")
             .order_by("-editorial_score", "-published_at")
         )
         user = self.request.user
@@ -74,7 +74,7 @@ class ProductListView(generics.ListAPIView):
         qs = (
             Product.objects.filter(status=Product.Status.PUBLISHED)
             .select_related("category")
-            .prefetch_related("tags")
+            .prefetch_related("tags", "media")
         )
         q = self.request.query_params.get("q") or self.request.query_params.get("search")
         if q:

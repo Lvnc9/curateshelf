@@ -31,6 +31,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     my_attitude = serializers.SerializerMethodField()
+    gallery_preview = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -56,7 +57,26 @@ class ProductListSerializer(serializers.ModelSerializer):
             "skip_count",
             "my_attitude",
             "inventory_count",
+            "gallery_preview",
         )
+
+    def get_gallery_preview(self, obj):
+        """First two non-cover images (card-sized) for spreads and hover states in lists.
+
+        Relies on `prefetch_related("media")` in list views to avoid N+1 queries.
+        """
+        request = self.context.get("request")
+        items = []
+        for media in obj.media.all():
+            if media.media_type != ProductMedia.MediaType.IMAGE or media.sort_order == 0:
+                continue  # sort_order 0 duplicates the cover image
+            url = media.variants.get("card") or media.file.url
+            items.append(
+                {"url": request.build_absolute_uri(url) if request else url, "alt": media.alt_text}
+            )
+            if len(items) == 2:
+                break
+        return items
 
     def get_my_attitude(self, obj):
         request = self.context.get("request")

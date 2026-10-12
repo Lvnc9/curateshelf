@@ -21,5 +21,5 @@ class CollectionDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
     lookup_field = "slug"
     queryset = Collection.objects.prefetch_related(
-        "items__product__category", "items__product__tags"
+        "items__product__category", "items__product__tags", "items__product__media"
     )
