@@ -16,3 +16,5 @@ frontend/.env.local
 htmlcov/
 dist/
 build/
+# Redis snapshots from local redis-server runs
+dump.rdb
