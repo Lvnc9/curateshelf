@@ -101,10 +101,16 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 export const api = {
   feed: () => request<Product[]>("/products/feed/"),
-  products: (q?: string) =>
-    request<{ results: Product[] } | Product[]>(
-      q ? `/products/?q=${encodeURIComponent(q)}` : "/products/"
-    ).then((data) => (Array.isArray(data) ? data : data.results)),
+  /** Published catalogue; `q` is Postgres full-text search, `category` a category slug. */
+  products: (filters: { q?: string; category?: string } = {}) => {
+    const qs = new URLSearchParams();
+    if (filters.q) qs.set("q", filters.q);
+    if (filters.category) qs.set("category", filters.category);
+    const query = qs.toString();
+    return request<{ results: Product[] } | Product[]>(`/products/${query ? `?${query}` : ""}`).then(
+      (data) => (Array.isArray(data) ? data : data.results)
+    );
+  },
   product: (slug: string) => request<Product>(`/products/${slug}/`),
   categories: () => request<{ id: number; name: string; slug: string }[]>("/categories/"),
   shelves: (featured?: boolean) =>
