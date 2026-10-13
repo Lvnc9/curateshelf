@@ -1,33 +1,41 @@
 # Frontend overview
 
-Next.js 15 (App Router, Turbopack), React 19, Tailwind CSS v4, Framer Motion 12, TypeScript.
+Next.js 15 (App Router, Turbopack), React 19, Tailwind CSS v4, Framer Motion 12, TypeScript,
+shadcn/ui on Radix (overlays, menus, forms), cmdk, sonner, next-themes, react-hook-form + zod.
 Code lives in `frontend/`.
 
 ## Structure
 
 ```
-frontend/src/
-├── app/                         # routes (App Router)
-│   ├── layout.tsx               # fonts, <html>, skip link, Providers, SiteNav
-│   ├── globals.css              # design tokens (@theme) + base styles
-│   ├── page.tsx                 # "/" → <MagazineFeed/>
-│   ├── p/[slug]/page.tsx        # product story
-│   ├── explore/                 # search + filters (layout.tsx = metadata)
-│   ├── shelves/page.tsx, shelves/[slug]/page.tsx
-│   ├── u/[username]/page.tsx    # public profile
-│   ├── login/, register/, settings/
-├── components/
-│   ├── Providers.tsx            # MotionConfig(reducedMotion) + AuthProvider
-│   ├── SiteNav.tsx              # masthead navigation + mobile sheet
-│   ├── MagazineFeed.tsx, StorySlide.tsx, feed/*   # the home issue (see feed.md)
-│   ├── AttitudeBar.tsx          # Love / Curious / Skip
-│   ├── CommentThread.tsx
-│   ├── AuthShell.tsx            # split-screen frame for sign in / register (+ FormError)
-│   └── ui/                      # design-system primitives (see design-system.md)
-└── lib/
-    ├── api.ts                   # typed API client + image/price/byline helpers
-    ├── auth.tsx                 # AuthProvider / useAuth
-    └── motion.ts                # shared easing, durations, variants
+frontend/
+├── components.json              # shadcn/ui config (ui alias → @/components/shadcn)
+└── src/
+    ├── app/                         # routes (App Router)
+    │   ├── layout.tsx               # fonts, <html>, skip link, Providers, SiteNav(+bell), CommandPalette
+    │   ├── globals.css              # light/dark tokens (@theme) + base styles
+    │   ├── page.tsx                 # "/" → <MagazineFeed/>
+    │   ├── p/[slug]/page.tsx        # product story
+    │   ├── explore/                 # search + filters (layout.tsx = metadata)
+    │   ├── shelves/page.tsx, shelves/[slug]/page.tsx
+    │   ├── u/[username]/page.tsx    # public profile
+    │   ├── login/, register/, settings/   # RHF + zod forms
+    ├── components/
+    │   ├── Providers.tsx            # ThemeProvider + MotionConfig + AuthProvider + Toaster
+    │   ├── SiteNav.tsx              # masthead nav + mobile Sheet
+    │   ├── UserMenu.tsx             # account dropdown (shelf, settings, theme, sign out)
+    │   ├── ThemeToggle.tsx          # light ⇄ dark
+    │   ├── NotificationBell.tsx     # popover of reply / digest notifications
+    │   ├── CommandPalette.tsx       # ⌘K palette + SearchButton
+    │   ├── MagazineFeed.tsx, StorySlide.tsx, feed/*   # the home issue (see feed.md)
+    │   ├── AttitudeBar.tsx, CommentThread.tsx, AuthShell.tsx
+    │   ├── ui/                      # our design-system components (see design-system.md)
+    │   └── shadcn/                  # generated Radix primitives, restyled (do not mix with ui/)
+    └── lib/
+        ├── api.ts                   # typed API client + helpers (images, price, byline, timeAgo)
+        ├── auth.tsx                 # AuthProvider / useAuth
+        ├── schemas.ts               # zod schemas for login / register / settings
+        ├── motion.ts                # shared easing, durations, variants
+        └── utils.ts                 # cn() = clsx + tailwind-merge
 ```
 
 ## Routes
@@ -77,14 +85,19 @@ first paint. It's a reasonable next step, because those endpoints don't need aut
 | `formatPrice(p)` | `Intl` currency formatting (`$68`, `$320`) |
 | `byline(p, joiner)` | "Maker · Brand", dropping the brand when the maker name already contains it |
 | `coverTone(seed)` | Deterministic warm placeholder colours shown while an image loads |
+| `timeAgo(iso)` | "3 hours ago" via `Intl.RelativeTimeFormat` (notifications) |
 
 ## State
 
 There's no global store. State is local to pages, apart from:
 
 - **Auth:** `AuthProvider` context (`useAuth()`), see [../backend/authentication.md](../backend/authentication.md#frontend-session-frontendsrclibauthtsx).
+- **Theme:** next-themes (`useTheme()`), persisted in `localStorage['theme']`.
+- **Forms:** react-hook-form per form.
 - **URL state:** Explore filters (`?q`, `?category`), the login redirect (`?next`) and the feed
   position (`#no-N`).
+- **Global UI singletons:** one `<Toaster>` (in Providers) and one `<CommandPalette>` (in layout),
+  reached through `toast()` and `openCommandPalette()`.
 
 ## Configuration
 
@@ -94,6 +107,7 @@ There's no global store. State is local to pages, apart from:
 | `.env.local` | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_MEDIA_URL` |
 | `eslint.config.mjs` | `next/core-web-vitals` + TypeScript |
 | `postcss.config.mjs` | Tailwind v4 PostCSS plugin |
+| `components.json` | shadcn/ui CLI config (`npx shadcn@latest add <name>` writes to `src/components/shadcn/`) |
 
 If you serve media from another host (S3, CDN), add it to `remotePatterns`, or `next/image` will refuse
 to load it.
