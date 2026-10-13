@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from 
 import { MenuIcon } from "./ui/Icons";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
+import { SearchButton } from "./CommandPalette";
 
 const LINKS = [
   { href: "/", label: "Issue" },
@@ -28,10 +29,11 @@ const navText = "text-[0.72rem] uppercase tracking-[0.22em]";
  * mix-blend-difference so it stays legible on both dark photos and paper spreads.
  * Everywhere else it is a frosted paper bar with a hairline rule.
  *
- * Right-hand slots (desktop): primary links · [search] · [bell] · theme · account.
- * Mobile: [search] · [bell] · menu sheet (Radix Dialog: focus trap, Esc, scroll lock).
+ * Right-hand side (desktop): primary links · search (⌘K) · [bell] · theme · account.
+ * Mobile: search · [bell] · menu sheet (Radix Dialog: focus trap, Esc, scroll lock).
+ * The command palette itself is mounted once in the root layout.
  */
-export function SiteNav({ search, bell }: { search?: React.ReactNode; bell?: React.ReactNode }) {
+export function SiteNav({ bell }: { bell?: React.ReactNode }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -70,7 +72,7 @@ export function SiteNav({ search, bell }: { search?: React.ReactNode; bell?: Rea
           })}
           <span className="h-4 w-px bg-current opacity-25" aria-hidden />
           <div className="flex items-center gap-1">
-            {search}
+            <SearchButton />
             {user && bell}
             <ThemeToggle className="opacity-70" />
           </div>
@@ -85,7 +87,7 @@ export function SiteNav({ search, bell }: { search?: React.ReactNode; bell?: Rea
 
         {/* Mobile */}
         <div className="flex items-center gap-0.5 md:hidden">
-          {search}
+          <SearchButton compact />
           {user && bell}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger className="-mr-2 grid size-10 place-items-center" aria-label="Open menu">
