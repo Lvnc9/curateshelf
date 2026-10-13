@@ -11,6 +11,7 @@ from django.utils.text import slugify
 from apps.catalog.models import Category, Product, ProductAttribute, ProductMedia, Tag
 from apps.editorial.models import Collection, CollectionItem
 from apps.engagement.models import Attitude, Comment
+from apps.notifications.models import Notification
 
 User = get_user_model()
 
@@ -312,6 +313,28 @@ class Command(BaseCommand):
                 author=editor,
                 parent=parent,
                 body="Glad it found a morning table. Edition almost gone.",
+            )
+
+        # Demo notifications so the reader's bell has something to show (idempotent).
+        reply = Comment.objects.filter(product=products[0], author=editor, parent__isnull=False).first()
+        if reply and not Notification.objects.filter(user=reader, type=Notification.Type.COMMENT_REPLY).exists():
+            Notification.objects.create(
+                user=reader,
+                type=Notification.Type.COMMENT_REPLY,
+                payload={
+                    "comment_id": reply.pk,
+                    "product_slug": products[0].slug,
+                    "product_title": products[0].title,
+                    "from_username": editor.profile.username,
+                    "body_preview": reply.body[:120],
+                },
+            )
+        if not Notification.objects.filter(user=reader, type=Notification.Type.DIGEST).exists():
+            picks = sorted(products, key=lambda p: -p.editorial_score)[:3]
+            Notification.objects.create(
+                user=reader,
+                type=Notification.Type.DIGEST,
+                payload={"products": [{"slug": p.slug, "title": p.title} for p in picks]},
             )
 
         self.stdout.write(self.style.SUCCESS("Seed complete."))
