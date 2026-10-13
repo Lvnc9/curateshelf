@@ -104,5 +104,7 @@ Settings). The login page only follows `next` values that are same-site relative
 - Tokens in `localStorage` are readable by any script on the page. Moving them to httpOnly cookies
   (with CSRF protection) would harden this if the app grows.
 - `RegisterSerializer` only enforces `min_length=8`. Django's `AUTH_PASSWORD_VALIDATORS` are not run
-  on API sign-up. Calling `validate_password()` in the serializer would apply them.
+  on API sign-up. The register form now rejects all-digit passwords client-side (`lib/schemas.ts`),
+  but the API still accepts them. Calling `validate_password()` in the serializer would enforce the
+  full set server-side.
 - No email verification or password reset flow.

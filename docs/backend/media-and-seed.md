@@ -43,6 +43,7 @@ Creates or updates, idempotently:
 | Photos | For each product: `seed_media/products/<slug>/cover.jpg` → `cover_image`, and `cover.jpg, 1.jpg, 2.jpg` → `ProductMedia` (sort 0–2) with alt text from `PRODUCTS[i]["image_alts"]` |
 | Shelves | `quiet-mornings`, `material-stories` (featured) with covers from `seed_media/shelves/` |
 | Engagement | The reader loves product 1, is curious about product 3, and a comment + editor reply on product 1 |
+| Notifications | For the reader: one `comment_reply` (the editor's reply) and one weekly `digest` (top 3 picks) |
 
 ### Idempotency
 

@@ -39,8 +39,13 @@ published products.
 The backend comes from `EMAIL_BACKEND`. In development it's the console backend, so emails print in the
 runserver/worker terminal. All sends use `fail_silently=True`, so a mail outage never breaks a request.
 
-## Frontend status
+## Frontend
 
-The API is complete, but **no UI consumes notifications yet**. A bell in `SiteNav` that polls
-`/notifications/` would be the natural next step. Settings already expose the profile flags through
-`/me/` (`notify_replies`, `notify_digest`), though the Settings form doesn't show toggles for them yet.
+`frontend/src/components/NotificationBell.tsx` shows a bell with an unread badge in the nav for
+signed-in readers. It opens a popover listing replies and digests, marks items read on open, has
+*Mark all read*, and polls every 60 s while the tab is visible. Readers manage `notify_replies` /
+`notify_digest` with switches under **Settings → Email**. See
+[../frontend/pages.md](../frontend/pages.md#notifications).
+
+`seed_demo` creates one `comment_reply` and one `digest` notification for the demo reader. The seeded
+reply is written straight to the database, which skips the task.

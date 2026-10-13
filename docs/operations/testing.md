@@ -50,5 +50,15 @@ Run through this at **desktop (≥1280px)** and **mobile (375px)**:
 - [ ] Shelves index → shelf detail, all photos load.
 - [ ] Profile tabs. Skipped is visible only on your own profile.
 - [ ] Settings save and show "Saved.".
+- [ ] Theme: toggle light ⇄ dark (nav, account menu, mobile sheet, palette). Every page is readable
+      in both, and text on photos stays light in both.
+- [ ] ⌘K / Ctrl+K and `/` open the palette, typing filters stories, "Search the catalogue" opens
+      Explore, ↓ + ↵ navigates, Esc closes.
+- [ ] Signed in as the demo reader: the bell shows 2 unread, rows link correctly, and mark-all-read
+      clears the badge.
+- [ ] Forms: invalid email, username and all-digit password show inline errors with no request; an
+      existing email shows a server error on the email field; Settings save toggles a switch, toasts
+      and persists.
+- [ ] Mobile menu: Tab stays inside the sheet, Esc closes it, the page behind doesn't scroll.
 - [ ] OS "reduce motion" on: no Ken Burns, reveals or count rolls.
 - [ ] No console errors, and no failed `/media/` or `/_next/image` requests.
