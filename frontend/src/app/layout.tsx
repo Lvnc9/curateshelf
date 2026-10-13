@@ -3,6 +3,7 @@ import { Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { SiteNav } from "@/components/SiteNav";
+import { NotificationBell } from "@/components/NotificationBell";
 
 // Variable Fraunces: the SOFT and opsz axes give the light, rounded display voice.
 const display = Fraunces({
@@ -48,7 +49,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Skip to content
         </a>
         <Providers>
-          <SiteNav />
+          <SiteNav bell={<NotificationBell />} />
           <main id="main">{children}</main>
         </Providers>
       </body>

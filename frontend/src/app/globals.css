@@ -133,6 +133,14 @@
 }
 
 @layer base {
+  /* Tailwind v4 defaults border-color to currentColor; shadcn primitives expect a hairline.
+     Explicit utilities (border-ink/20, border-current/40…) still override this. */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;

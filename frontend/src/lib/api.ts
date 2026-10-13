@@ -72,6 +72,29 @@ export type Collection = {
   items?: { position: number; blurb: string; product: Product }[];
 };
 
+export type NotificationItem =
+  | {
+      id: number;
+      type: "comment_reply";
+      is_read: boolean;
+      created_at: string;
+      payload: {
+        comment_id: number;
+        product_slug: string;
+        product_title: string;
+        from_username: string;
+        body_preview: string;
+      };
+    }
+  | {
+      id: number;
+      type: "digest";
+      is_read: boolean;
+      created_at: string;
+      payload: { products: { slug: string; title: string }[] };
+    }
+  | { id: number; type: "product_published"; is_read: boolean; created_at: string; payload: Record<string, unknown> };
+
 function authHeaders(): HeadersInit {
   if (typeof window === "undefined") return {};
   const token = localStorage.getItem("cs_access");
@@ -165,6 +188,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ body, parent: parent ?? null }),
     }),
+  notifications: () =>
+    request<{ results: NotificationItem[] } | NotificationItem[]>("/notifications/").then((data) =>
+      Array.isArray(data) ? data : data.results
+    ),
+  /** Mark the given ids (or every unread notification when omitted) as read. */
+  markNotificationsRead: (ids?: number[]) =>
+    request<{ updated: number }>("/notifications/read/", {
+      method: "POST",
+      body: JSON.stringify(ids ? { ids } : {}),
+    }),
   likeComment: (id: number) =>
     request<{ likes_count: number; liked: boolean }>(`/comments/${id}/like/`, { method: "POST" }),
   unlikeComment: (id: number) =>
@@ -217,6 +250,25 @@ export function formatPrice(p: Pick<Product, "price" | "currency">): string {
   } catch {
     return `${p.currency} ${p.price}`;
   }
+}
+
+const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+/** "3 hours ago", "yesterday"; falls back to a short date beyond a month. */
+export function timeAgo(iso: string, now = Date.now()): string {
+  const seconds = Math.round((new Date(iso).getTime() - now) / 1000);
+  const steps: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["second", 60],
+    ["minute", 60],
+    ["hour", 24],
+    ["day", 30],
+  ];
+  let value = seconds;
+  for (const [unit, size] of steps) {
+    if (Math.abs(value) < size) return rtf.format(value, unit);
+    value = Math.round(value / size);
+  }
+  return new Intl.DateTimeFormat("en", { day: "numeric", month: "short" }).format(new Date(iso));
 }
 
 /** Placeholder tone shown behind a photo while it loads (and if it is missing). */
