@@ -40,6 +40,9 @@ Scroll full-bleed product stories like a digital magazine. React with **Love / C
 | **Comments** | Threaded replies, likes, spam flagging, admin moderation |
 | **Shelves** | Editorial collections (featured on the home feed) |
 | **Profiles** | Public profiles + Loved / Curious shelves |
+| **Search** | ⌘K command palette (stories, shelves, categories, pages, theme) + full-text Explore |
+| **Notifications** | Nav bell for replies and the weekly digest; email preferences in Settings |
+| **Themes** | Light and dark editorial themes (follows the OS by default) |
 | **Admin** | Unfold-styled Django admin for product operations |
 | **Jobs** | Celery: image processing, scheduled publish, digests, stats |
 
@@ -71,7 +74,10 @@ hairline rules, a light Fraunces serif for display type, Outfit for UI text, and
 | Feed pieces: cover, issue rail, closing shelves | `frontend/src/components/feed/` |
 | Why the photos are committed (and where they come from) | [ADR-0001](docs/adr/0001-editorial-imagery.md) |
 
-Muted text and accent colours pass WCAG AA on paper. Every animation respects `prefers-reduced-motion`.
+It ships in **light and dark** themes. Muted text and accent colours pass WCAG AA in both. Accessible
+overlays (menus, sheet, popovers, ⌘K palette, forms) are built on shadcn/ui + Radix in
+`frontend/src/components/shadcn/`, restyled to the editorial look. Every animation respects
+`prefers-reduced-motion`.
 
 ---
 
