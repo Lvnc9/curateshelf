@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { api, type AttitudeKind, type Product } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CuriousIcon, HeartIcon, SkipIcon } from "./ui/Icons";
@@ -68,6 +69,7 @@ export function AttitudeBar({
       onChange?.(confirmed);
     } catch {
       setLocal(previous);
+      toast.error("Couldn't save your reaction", { description: "We put it back as it was. Try again in a moment." });
     } finally {
       setBusy(false);
     }

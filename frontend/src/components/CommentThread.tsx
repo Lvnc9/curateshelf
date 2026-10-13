@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, type Comment } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 import { Button, Eyebrow } from "./ui/primitives";
 import { HeartIcon } from "./ui/Icons";
 
@@ -35,18 +36,27 @@ function CommentItem({
 
   async function toggleLike() {
     if (!user) return;
-    if (comment.liked_by_me) await api.unlikeComment(comment.id);
-    else await api.likeComment(comment.id);
-    onRefresh();
+    try {
+      if (comment.liked_by_me) await api.unlikeComment(comment.id);
+      else await api.likeComment(comment.id);
+      onRefresh();
+    } catch {
+      toast.error("Couldn't update that like");
+    }
   }
 
   async function sendReply(e: React.FormEvent) {
     e.preventDefault();
     if (!reply.trim()) return;
-    await api.postComment(slug, reply.trim(), comment.id);
-    setReply("");
-    setOpen(false);
-    onRefresh();
+    try {
+      await api.postComment(slug, reply.trim(), comment.id);
+      setReply("");
+      setOpen(false);
+      onRefresh();
+      toast.success(`Reply sent to ${name}`);
+    } catch {
+      toast.error("Your reply didn't send", { description: "Your text is still in the box. Try again." });
+    }
   }
 
   return (
@@ -136,9 +146,14 @@ export function CommentThread({ slug }: { slug: string }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!body.trim() || !user) return;
-    await api.postComment(slug, body.trim());
-    setBody("");
-    refresh();
+    try {
+      await api.postComment(slug, body.trim());
+      setBody("");
+      refresh();
+      toast.success("Note posted", { description: "Thanks for adding to the conversation." });
+    } catch {
+      toast.error("Your note didn't post", { description: "Your text is still in the box. Try again." });
+    }
   }
 
   return (

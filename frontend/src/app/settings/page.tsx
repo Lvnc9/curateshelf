@@ -1,44 +1,55 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { FormError } from "@/components/AuthShell";
-import { Button, Eyebrow, Field, TextArea } from "@/components/ui/primitives";
+import { settingsSchema, type SettingsValues } from "@/lib/schemas";
+import { Form } from "@/components/shadcn/form";
+import { Button, Eyebrow } from "@/components/ui/primitives";
+import { SwitchFormField, TextFormField, applyServerErrors } from "@/components/ui/FormFields";
+
+const EMPTY: SettingsValues = {
+  display_name: "",
+  bio: "",
+  location: "",
+  website: "",
+  notify_replies: true,
+  notify_digest: true,
+};
 
 export default function SettingsPage() {
   const { user, refresh, loading } = useAuth();
   const router = useRouter();
-  const [displayName, setDisplayName] = useState("");
-  const [bio, setBio] = useState("");
-  const [location, setLocation] = useState("");
-  const [website, setWebsite] = useState("");
-  const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
-  const [error, setError] = useState<string | null>(null);
+  const form = useForm<SettingsValues>({ resolver: zodResolver(settingsSchema), defaultValues: EMPTY, mode: "onTouched" });
+  const { isSubmitting, isDirty } = form.formState;
 
   useEffect(() => {
     if (!loading && !user) router.push("/login?next=/settings");
     if (user) {
-      setDisplayName(user.display_name || "");
-      setBio(user.bio || "");
-      setLocation(user.location || "");
-      setWebsite(user.website || "");
+      form.reset({
+        display_name: user.display_name || "",
+        bio: user.bio || "",
+        location: user.location || "",
+        website: user.website || "",
+        notify_replies: user.notify_replies ?? true,
+        notify_digest: user.notify_digest ?? true,
+      });
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, form]);
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setState("saving");
+  async function onSubmit(values: SettingsValues) {
     try {
-      await api.updateMe({ display_name: displayName, bio, location, website });
+      await api.updateMe(values);
       await refresh();
-      setState("saved");
+      toast.success("Settings saved");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save");
-      setState("idle");
+      const root = applyServerErrors(err, form.setError, Object.keys(EMPTY));
+      toast.error("Couldn't save settings", { description: root ?? "Check the highlighted fields." });
     }
   }
 
@@ -49,7 +60,7 @@ export default function SettingsPage() {
       <div>
         <Eyebrow>Your account</Eyebrow>
         <h1 className="mt-4 text-display">Settings</h1>
-        <p className="mt-5 max-w-sm text-lede text-muted">How you appear to other readers on your public shelf.</p>
+        <p className="mt-5 max-w-sm text-lede text-muted">How you appear to other readers, and what we send you.</p>
         <Link
           href={`/u/${user.username}`}
           className="mt-8 inline-block border-b border-ink/30 pb-1 text-[0.72rem] uppercase tracking-[0.22em] hover:border-ink"
@@ -58,23 +69,44 @@ export default function SettingsPage() {
         </Link>
       </div>
 
-      <form onSubmit={onSubmit} className="max-w-xl space-y-9 md:pt-4" onChange={() => state === "saved" && setState("idle")}>
-        <Field label="Display name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-        <TextArea label="Bio" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="A line about what you collect" />
-        <div className="grid gap-9 sm:grid-cols-2">
-          <Field label="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
-          <Field label="Website" type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://" />
-        </div>
-        <FormError message={error} />
-        <div className="flex items-center gap-6">
-          <Button type="submit" disabled={state === "saving"}>
-            {state === "saving" ? "Saving…" : "Save changes"}
-          </Button>
-          <p className="text-sm text-clay-deep" aria-live="polite">
-            {state === "saved" ? "Saved." : ""}
-          </p>
-        </div>
-      </form>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-xl space-y-9 md:pt-4" noValidate>
+          <section className="space-y-9" aria-labelledby="profile-heading">
+            <h2 id="profile-heading" className="text-eyebrow uppercase text-muted">Public profile</h2>
+            <TextFormField control={form.control} name="display_name" label="Display name" autoComplete="name" />
+            <TextFormField control={form.control} name="bio" label="Bio" multiline rows={3} placeholder="A line about what you collect" />
+            <div className="grid gap-9 sm:grid-cols-2">
+              <TextFormField control={form.control} name="location" label="Location" />
+              <TextFormField control={form.control} name="website" label="Website" type="url" placeholder="https://" />
+            </div>
+          </section>
+
+          <section aria-labelledby="email-heading">
+            <h2 id="email-heading" className="text-eyebrow uppercase text-muted">Email</h2>
+            <div className="mt-2 border-t border-hairline">
+              <SwitchFormField
+                control={form.control}
+                name="notify_replies"
+                label="Replies to my notes"
+                description="An email when someone replies to you in a conversation."
+              />
+              <SwitchFormField
+                control={form.control}
+                name="notify_digest"
+                label="Weekly editorial digest"
+                description="Monday morning: the five pieces readers responded to most."
+              />
+            </div>
+          </section>
+
+          <div className="flex items-center gap-6">
+            <Button type="submit" disabled={isSubmitting || !isDirty}>
+              {isSubmitting ? "Saving…" : "Save changes"}
+            </Button>
+            {isDirty && <p className="text-sm text-muted">Unsaved changes</p>}
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

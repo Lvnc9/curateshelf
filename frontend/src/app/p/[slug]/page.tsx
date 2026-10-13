@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { api, byline as bylineOf, formatPrice, productImages, type Product } from "@/lib/api";
 import { rise, stagger } from "@/lib/motion";
 import { AttitudeBar } from "@/components/AttitudeBar";
@@ -127,7 +128,17 @@ export default function ProductPage() {
           </motion.div>
 
           <motion.div variants={rise} className="mt-8 flex flex-col gap-6">
-            <Button type="button" className="w-full sm:w-auto sm:self-start">Inquire / Reserve</Button>
+            <Button
+              type="button"
+              className="w-full sm:w-auto sm:self-start"
+              onClick={() =>
+                toast(`Reservation noted for ${product.title}`, {
+                  description: "Checkout isn't part of v1. In a live shop the maker would follow up by email.",
+                })
+              }
+            >
+              Inquire / Reserve
+            </Button>
             <p className="-mt-3 text-xs text-muted">Demo CTA. Payments aren&rsquo;t part of v1.</p>
             <AttitudeBar product={product} onChange={setProduct} />
           </motion.div>
