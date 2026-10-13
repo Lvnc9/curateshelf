@@ -105,7 +105,7 @@ export function MagazineFeed() {
     current === 0 ? "Cover" : current > total ? "Shelves" : products[current - 1]?.category?.name ?? "Editorial";
 
   return (
-    <div className="relative bg-ink">
+    <div className="relative bg-night">
       <div
         ref={scroller}
         className="scrollbar-none h-[100dvh] snap-y snap-mandatory overflow-y-scroll overscroll-y-contain"
@@ -113,7 +113,7 @@ export function MagazineFeed() {
         <CoverSlide products={products} onJump={jumpTo} />
 
         {status === "loading" && (
-          <section className="flex h-[100dvh] snap-start flex-col justify-end gap-4 bg-ink px-5 pb-28 md:px-14" aria-busy="true">
+          <section className="flex h-[100dvh] snap-start flex-col justify-end gap-4 bg-night px-5 pb-28 md:px-14" aria-busy="true">
             <span className="sr-only">Loading stories…</span>
             <Skeleton className="h-3 w-48 !bg-white/10" />
             <Skeleton className="h-14 w-[min(36rem,80%)] !bg-white/10" />

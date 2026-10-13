@@ -1,22 +1,90 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* Class-based dark mode (next-themes toggles .dark on <html>). */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
  * CurateShelf, "Quiet Editorial" design tokens.
  * Warm paper, hairline rules, light serif display type, generous whitespace.
- * Tailwind v4 turns every --color-* / --font-* / --text-* / --ease-* below into
- * utilities (bg-paper, text-ink, border-hairline, font-display, text-hero, ease-editorial…).
- * Contrast (WCAG AA): muted and clay-deep pass 4.5:1 on paper; clay is a fill only.
+ *
+ * Two layers:
+ *  1. Raw palette on :root / .dark (swapped by the theme).
+ *  2. @theme inline maps them to Tailwind utilities (bg-paper, text-ink, border-hairline…)
+ *     plus shadcn/ui's semantic names (bg-popover, text-muted-foreground, ring-ring…),
+ *     so Radix-based components in components/shadcn/ inherit the editorial look.
+ *
+ * Semantic tokens FLIP in dark mode: paper is the page, ink is the text.
+ * chalk / night are FIXED (always light / always dark). Use them for text and fills on top of photos.
+ *
+ * Contrast (WCAG AA, 4.5:1), measured:
+ *   light: muted 4.83, clay-deep 4.56, danger 5.53 on paper. clay is a fill only (ink on clay 5.35)
+ *   dark:  muted 6.76, clay-deep 8.57, danger 6.93, ink-soft 10.2 on paper
  */
+:root {
+  --paper: #f5f1ea;
+  --paper-deep: #ece6db;
+  --ink: #1b1a17;
+  --ink-soft: #4a463f;
+  --muted: #6b655b;
+  --hairline: rgb(27 26 23 / 0.12);
+  --field: rgb(27 26 23 / 0.25);
+  --clay: #b4846c;
+  --clay-deep: #8e6450;
+  --sage: #8fa89a;
+  --danger: #a5402d;
+  color-scheme: light;
+}
+
+.dark {
+  --paper: #141310;
+  --paper-deep: #1f1d1a;
+  --ink: #ece5d8;
+  --ink-soft: #c8bfb0;
+  --muted: #a39b8e;
+  --hairline: rgb(236 229 216 / 0.14);
+  --field: rgb(236 229 216 / 0.28);
+  --clay: #c4937a;
+  --clay-deep: #d6a68b;
+  --sage: #9fb8aa;
+  --danger: #e8826b;
+  color-scheme: dark;
+}
+
 @theme inline {
-  --color-paper: #f5f1ea;
-  --color-paper-deep: #ece6db;
-  --color-ink: #1b1a17;
-  --color-ink-soft: #4a463f;
-  --color-muted: #6b655b;
-  --color-hairline: rgb(27 26 23 / 0.12);
-  --color-clay: #b4846c;
-  --color-clay-deep: #8e6450;
-  --color-sage: #8fa89a;
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-hairline: var(--hairline);
+  --color-clay: var(--clay);
+  --color-clay-deep: var(--clay-deep);
+  --color-sage: var(--sage);
+  --color-danger: var(--danger);
+
+  /* Fixed, theme-independent (for copy on photography) */
+  --color-chalk: #f5f1ea;
+  --color-night: #1b1a17;
+
+  /* shadcn/ui semantic aliases → editorial palette */
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-popover: var(--paper);
+  --color-popover-foreground: var(--ink);
+  --color-card: var(--paper);
+  --color-card-foreground: var(--ink);
+  --color-primary: var(--ink);
+  --color-primary-foreground: var(--paper);
+  --color-secondary: var(--paper-deep);
+  --color-secondary-foreground: var(--ink);
+  --color-accent: var(--paper-deep);
+  --color-accent-foreground: var(--ink);
+  --color-muted-foreground: var(--muted);
+  --color-destructive: var(--danger);
+  --color-border: var(--hairline);
+  --color-input: var(--field);
+  --color-ring: var(--clay-deep);
 
   --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
   --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import { CloseIcon, MenuIcon } from "./ui/Icons";
+import { ThemeToggle } from "./ThemeToggle";
 import { EASE } from "@/lib/motion";
 
 const LINKS = [
@@ -66,6 +67,7 @@ export function SiteNav() {
                 </Link>
               );
             })}
+            <ThemeToggle className="-mx-2 opacity-70" />
             <span className="h-4 w-px bg-current opacity-25" aria-hidden />
             {user ? (
               <>
@@ -96,6 +98,8 @@ export function SiteNav() {
             )}
           </nav>
 
+          <div className="flex items-center gap-1 md:hidden">
+            <ThemeToggle className="opacity-80" />
           <button
             type="button"
             className="-mr-2 grid size-10 place-items-center md:hidden"
@@ -105,6 +109,7 @@ export function SiteNav() {
           >
             <MenuIcon className="size-6" />
           </button>
+          </div>
         </div>
       </header>
 

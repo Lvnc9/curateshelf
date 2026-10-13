@@ -29,13 +29,17 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f5f1ea",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f1ea" },
+    { media: "(prefers-color-scheme: dark)", color: "#141310" },
+  ],
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     // Font variables live on <html> so :root-level tokens (--font-display) can resolve them.
-    <html lang="en" className={`${display.variable} ${sans.variable}`}>
+    // suppressHydrationWarning: next-themes sets the .dark class before React hydrates.
+    <html lang="en" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <a
           href="#main"

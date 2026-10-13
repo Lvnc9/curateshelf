@@ -84,7 +84,7 @@ export function AttitudeBar({
           ? "border-white/35 bg-black/15 text-white backdrop-blur-md hover:border-white/70"
           : "border-ink/20 text-ink hover:border-ink/60";
         const on = onPhoto
-          ? "border-paper bg-paper text-ink"
+          ? "border-chalk bg-chalk text-night"
           : "border-ink bg-ink text-paper";
         return (
           <motion.button

@@ -32,7 +32,7 @@ export function IssueRail({
     <div
       className={`pointer-events-none fixed right-4 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-5 transition-[opacity,color] duration-500 md:flex md:right-8 ${
         current === 0 ? "opacity-0" : "opacity-100"
-      } ${surface === "photo" ? "text-paper [text-shadow:0_1px_8px_rgb(0_0_0/0.35)]" : "text-ink"}`}
+      } ${surface === "photo" ? "text-chalk [text-shadow:0_1px_8px_rgb(0_0_0/0.35)]" : "text-ink"}`}
       aria-hidden={current === 0}
     >
       <p className="text-eyebrow tabular-nums [writing-mode:vertical-rl]">

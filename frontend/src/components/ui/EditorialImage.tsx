@@ -37,6 +37,8 @@ export function EditorialImage({
       className={`absolute inset-0 overflow-hidden ${className}`}
       style={{ background: `linear-gradient(160deg, ${t.from}, ${t.to})` }}
     >
+      {/* Dark theme: dim the warm placeholder so loading photos don't flash bright panels */}
+      <div aria-hidden className="absolute inset-0 hidden bg-night/80 dark:block" />
       {src && (
         <Image
           src={src}

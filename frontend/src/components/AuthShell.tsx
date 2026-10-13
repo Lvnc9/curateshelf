@@ -20,7 +20,7 @@ export function AuthShell({
 }) {
   return (
     <div className="grid min-h-[100dvh] md:grid-cols-[1.1fr_1fr]">
-      <aside className="grain relative hidden overflow-hidden bg-ink text-paper md:block">
+      <aside className="grain relative hidden overflow-hidden bg-night text-chalk md:block">
         <Image
           src="/editorial/masthead.jpg"
           alt=""
@@ -34,7 +34,7 @@ export function AuthShell({
           <blockquote className="max-w-md font-display-italic text-[clamp(1.6rem,1.1rem+1.2vw,2.4rem)] leading-snug">
             &ldquo;Fewer things, chosen slowly, kept for a long time.&rdquo;
           </blockquote>
-          <figcaption className="mt-5 text-eyebrow uppercase text-paper/75">The CurateShelf editors</figcaption>
+          <figcaption className="mt-5 text-eyebrow uppercase text-chalk/75">The CurateShelf editors</figcaption>
         </figure>
       </aside>
 

@@ -29,7 +29,7 @@ export function CoverSlide({
     <section
       data-slide={0}
       aria-label="Cover"
-      className="grain relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-ink text-paper"
+      className="grain relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-night text-chalk"
     >
       <motion.div
         className="absolute inset-0"
@@ -50,7 +50,7 @@ export function CoverSlide({
 
       <div className="relative z-10 mx-auto flex h-full max-w-[90rem] flex-col px-5 pb-10 pt-24 md:px-10 md:pb-12 md:pt-28">
         <motion.div
-          className="flex items-center justify-between border-y border-paper/25 py-2.5 text-eyebrow uppercase"
+          className="flex items-center justify-between border-y border-chalk/25 py-2.5 text-eyebrow uppercase"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.4, ease: EASE }}
@@ -72,7 +72,7 @@ export function CoverSlide({
         </motion.h1>
 
         <motion.p
-          className="mt-6 max-w-md text-lede text-paper/85"
+          className="mt-6 max-w-md text-lede text-chalk/85"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.6, ease: EASE }}
@@ -89,16 +89,16 @@ export function CoverSlide({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.85, ease: EASE }}
           >
-            <p className="text-eyebrow uppercase text-paper/70">In this issue</p>
-            <ol className="mt-3 border-t border-paper/25">
+            <p className="text-eyebrow uppercase text-chalk/70">In this issue</p>
+            <ol className="mt-3 border-t border-chalk/25">
               {contents.map((p, i) => (
                 <li key={p.id}>
                   <button
                     type="button"
                     onClick={() => onJump(i + 1)}
-                    className="group flex w-full items-baseline gap-4 border-b border-paper/15 py-2.5 text-left"
+                    className="group flex w-full items-baseline gap-4 border-b border-chalk/15 py-2.5 text-left"
                   >
-                    <span className="text-eyebrow tabular-nums text-paper/60">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="text-eyebrow tabular-nums text-chalk/60">{String(i + 1).padStart(2, "0")}</span>
                     <span className="font-display text-lg transition-transform duration-500 ease-editorial group-hover:translate-x-1">
                       {p.title}
                     </span>
@@ -111,7 +111,7 @@ export function CoverSlide({
           <motion.button
             type="button"
             onClick={() => onJump(1)}
-            className="flex shrink-0 flex-col items-center gap-3 text-eyebrow uppercase text-paper/80 hover:text-paper"
+            className="flex shrink-0 flex-col items-center gap-3 text-eyebrow uppercase text-chalk/80 hover:text-chalk"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.2 }}

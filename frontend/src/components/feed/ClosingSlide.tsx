@@ -48,12 +48,12 @@ export function ClosingSlide({ shelves, index }: { shelves: Collection[]; index:
                   className="transition-transform duration-[1.4s] ease-editorial group-hover:scale-[1.04]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-6 text-paper md:p-8">
-                  <p className="text-eyebrow uppercase text-paper/75">
+                <div className="absolute inset-x-0 bottom-0 p-6 text-chalk md:p-8">
+                  <p className="text-eyebrow uppercase text-chalk/75">
                     Shelf{typeof s.product_count === "number" ? ` · ${s.product_count} pieces` : ""}
                   </p>
                   <h3 className="mt-2 text-[clamp(1.75rem,1.2rem+1.6vw,2.75rem)] leading-none">{s.title}</h3>
-                  <p className="mt-3 max-w-md text-sm text-paper/80">{s.description}</p>
+                  <p className="mt-3 max-w-md text-sm text-chalk/80">{s.description}</p>
                 </div>
               </Link>
             </motion.div>

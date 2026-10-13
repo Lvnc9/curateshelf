@@ -56,7 +56,7 @@ export default function ShelfDetailPage() {
   return (
     <article className="pb-28">
       {/* Hero */}
-      <header className="grain relative flex h-[78vh] min-h-[28rem] items-end overflow-hidden bg-ink text-paper">
+      <header className="grain relative flex h-[78vh] min-h-[28rem] items-end overflow-hidden bg-night text-chalk">
         <EditorialImage src={mediaUrl(shelf.cover)} alt="" tone={shelf.slug} priority kenBurns />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/40" />
         <motion.div
@@ -66,7 +66,7 @@ export default function ShelfDetailPage() {
           className="relative z-10 mx-auto w-full max-w-[90rem] px-5 pb-12 md:px-10 md:pb-16"
         >
           <motion.div variants={rise}>
-            <Link href="/shelves" className="group inline-flex items-center gap-2 text-eyebrow uppercase text-paper/90 hover:text-paper">
+            <Link href="/shelves" className="group inline-flex items-center gap-2 text-eyebrow uppercase text-chalk/90 hover:text-chalk">
               <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
               All shelves
             </Link>
@@ -74,7 +74,7 @@ export default function ShelfDetailPage() {
           <motion.h1 variants={rise} className="mt-5 text-hero">
             {shelf.title}
           </motion.h1>
-          <motion.p variants={rise} className="mt-4 text-eyebrow uppercase text-paper/90">
+          <motion.p variants={rise} className="mt-4 text-eyebrow uppercase text-chalk/90">
             {items.length} {items.length === 1 ? "piece" : "pieces"} on this shelf
           </motion.p>
         </motion.div>
